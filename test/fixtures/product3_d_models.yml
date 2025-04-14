@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  product: one
+  model_url: MyString
+  format: MyString
+  uploaded_at: 2025-01-22 13:27:31
+
+two:
+  product: two
+  model_url: MyString
+  format: MyString
+  uploaded_at: 2025-01-22 13:27:31

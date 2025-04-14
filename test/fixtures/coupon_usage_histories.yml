@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  coupon: one
+  order: one
+  discount_value: 9.99
+  used_at: 2025-03-17 19:35:48
+
+two:
+  user: two
+  coupon: two
+  order: two
+  discount_value: 9.99
+  used_at: 2025-03-17 19:35:48

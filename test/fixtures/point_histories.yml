@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  reward_point: one
+  tiers_point: one
+  transaction_type: MyString
+  points_earned: 1
+  points_used: 1
+  description: MyString
+
+two:
+  user: two
+  reward_point: two
+  tiers_point: two
+  transaction_type: MyString
+  points_earned: 1
+  points_used: 1
+  description: MyString

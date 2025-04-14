@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  payment_type: MyString
+  payment_details: MyString
+  is_default: false
+
+two:
+  user: two
+  payment_type: MyString
+  payment_details: MyString
+  is_default: false

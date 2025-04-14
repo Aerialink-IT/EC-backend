@@ -1,0 +1,7 @@
+<h1>New Inquiry Received</h1>
+<p><strong>Full Name:</strong> <%= @inquiry.full_name %></p>
+<p><strong>Email:</strong> <%= @inquiry.email %></p>
+<p><strong>Phone Number:</strong> <%= @inquiry.phone_number %></p>
+<p><strong>Order Number:</strong> <%= @inquiry.order_number.presence || "N/A" %></p>
+<p><strong>Message:</strong></p>
+<p><%= @inquiry.message %></p>

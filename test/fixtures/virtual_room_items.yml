@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  virtual_room: one
+  product: one
+  position_data: 
+  rotation_data: 
+
+two:
+  virtual_room: two
+  product: two
+  position_data: 
+  rotation_data: 

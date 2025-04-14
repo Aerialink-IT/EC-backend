@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Order Confirmation</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; }
+    h1 { color: #333; }
+    p { margin: 10px 0; }
+    .order-summary { border: 1px solid #ddd; padding: 10px; }
+    .order-summary ul { list-style-type: none; padding: 0; }
+    .order-summary li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Thank You for Your Order!</h1>
+
+  <p>Hello <strong><%= @order.user.first_name %> <%= @order.user.last_name %></strong>,</p>
+  <p>Your order <strong>#<%= @order.id %></strong> has been successfully placed.</p>
+
+  <h2>Order Details</h2>
+  <div class="order-summary">
+    <p><strong>Order Status:</strong> <%= @order.status.titleize %></p>
+    <p><strong>Payment Status:</strong> <%= @order.payment_status.titleize %></p>
+    <p><strong>Payment Method:</strong> <%= @order.payment_method.titleize %></p>
+
+    <h3>Items:</h3>
+    <ul>
+      <% @order.order_items.each do |item| %>
+        <li><%= item.product.name %> - <%= item.quantity %> x $<%= item.unit_price %></li>
+      <% end %>
+    </ul>
+    
+    <p><strong>Subtotal:</strong> $<%= @order.sub_total %></p>
+    <% if @order.coupon_code.present? %>
+      <p><strong>Coupon Applied:</strong> <%= @order.coupon_code %> (-$<%= @order.coupon_amount %>)</p>
+    <% end %>
+    <p><strong>Delivery Fees:</strong> $<%= @order.delivery_fees || 0 %></p>
+    <p><strong>Total:</strong> $<%= @order.total_price %></p>
+  </div>
+
+  <h2>Delivery Address</h2>
+  <% if @order.delivery_address %>
+    <p><strong>Name:</strong> <%= @order.delivery_address.first_name %></p>
+    <p><strong>Address:</strong> <%= @order.delivery_address.line1 %></p>
+    <p><strong>Prefecture:</strong> <%= @order.delivery_address.prefecture %></p>
+    <p><strong>Post_code:</strong> <%= @order.delivery_address.post_code %></p>
+    <p><strong>Email:</strong> <%= @order.delivery_address.email %></p>
+    <p><strong>Phone_number:</strong> <%= @order.delivery_address.phone_number %></p>
+  <% else %>
+    <p>No delivery address provided.</p>
+  <% end %>
+
+  <p>We will notify you once your order is shipped.</p>
+  <p>Thank you for shopping with us!</p>
+</body>
+</html>

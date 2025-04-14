@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  free_samples_request: one
+  product: one
+
+two:
+  free_samples_request: two
+  product: two
