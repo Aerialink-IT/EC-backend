@@ -10,12 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_06_125754) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
   enable_extension "unaccent"
+
+  create_table "abouts", force: :cascade do |t|
+    t.string "community_time"
+    t.text "description"
+    t.string "email"
+    t.string "phone"
+    t.string "address"
+    t.string "contact_us_time"
+    t.string "map_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "active_admin_comments", force: :cascade do |t|
     t.string "namespace"
@@ -79,6 +91,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_default", default: false
     t.index ["user_id"], name: "index_billing_details_on_user_id"
   end
 
@@ -99,6 +112,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.bigint "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "subtotal"
+    t.decimal "total"
+    t.decimal "shipping_fee"
     t.index ["user_id"], name: "index_carts_on_user_id"
   end
 
@@ -109,8 +125,20 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.uuid "uuid", default: -> { "gen_random_uuid()" }, null: false
+    t.string "name_jp"
+    t.string "description_jp"
     t.index ["parent_id"], name: "index_categories_on_parent_id"
     t.index ["uuid"], name: "index_categories_on_uuid", unique: true
+  end
+
+  create_table "chats", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "admin_user_id", null: false
+    t.boolean "unread_messages"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_user_id"], name: "index_chats_on_admin_user_id"
+    t.index ["user_id"], name: "index_chats_on_user_id"
   end
 
   create_table "comment_reactions", force: :cascade do |t|
@@ -140,12 +168,101 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
+  create_table "contents", force: :cascade do |t|
+    t.string "key"
+    t.text "content_en"
+    t.text "content_ja"
+    t.string "section"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_contents_on_key", unique: true
+    t.index ["section"], name: "index_contents_on_section"
+  end
+
+  create_table "coupon_usage_histories", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "coupon_id", null: false
+    t.bigint "order_id", null: false
+    t.decimal "discount_value"
+    t.string "coupon_code"
+    t.datetime "used_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["coupon_id"], name: "index_coupon_usage_histories_on_coupon_id"
+    t.index ["order_id"], name: "index_coupon_usage_histories_on_order_id"
+    t.index ["user_id"], name: "index_coupon_usage_histories_on_user_id"
+  end
+
+  create_table "coupons", force: :cascade do |t|
+    t.string "code"
+    t.string "name"
+    t.decimal "discount_value"
+    t.integer "status"
+    t.integer "coupon_type"
+    t.date "valid_from"
+    t.date "valid_until"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.integer "discount_type"
+    t.index ["user_id"], name: "index_coupons_on_user_id"
+  end
+
+  create_table "delivery_addresses", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.string "line1"
+    t.string "line2"
+    t.string "prefecture"
+    t.string "post_code"
+    t.string "phone_number"
+    t.string "email"
+    t.boolean "status", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_delivery_addresses_on_user_id"
+  end
+
   create_table "description_images", force: :cascade do |t|
     t.bigint "product_id", null: false
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_description_images_on_product_id"
+  end
+
+  create_table "free_sample_products", force: :cascade do |t|
+    t.bigint "free_samples_request_id", null: false
+    t.bigint "product_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["free_samples_request_id"], name: "index_free_sample_products_on_free_samples_request_id"
+    t.index ["product_id"], name: "index_free_sample_products_on_product_id"
+  end
+
+  create_table "free_samples_requests", force: :cascade do |t|
+    t.string "email"
+    t.text "address"
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "delivery_address_id", null: false
+    t.index ["delivery_address_id"], name: "index_free_samples_requests_on_delivery_address_id"
+    t.index ["user_id"], name: "index_free_samples_requests_on_user_id"
+  end
+
+  create_table "inquiry_forms", force: :cascade do |t|
+    t.string "full_name"
+    t.string "email"
+    t.string "phone_number"
+    t.string "order_number"
+    t.text "message"
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_inquiry_forms_on_user_id"
   end
 
   create_table "loyalty_transactions", force: :cascade do |t|
@@ -156,6 +273,24 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_loyalty_transactions_on_user_id"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.bigint "chat_id", null: false
+    t.string "sender_type"
+    t.integer "sender_id"
+    t.text "content"
+    t.boolean "read", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["chat_id"], name: "index_messages_on_chat_id"
+  end
+
+  create_table "newsletter_subscriptions", force: :cascade do |t|
+    t.string "email"
+    t.boolean "subscription_enabled"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "order_items", force: :cascade do |t|
@@ -185,7 +320,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.decimal "consumer_tax"
     t.decimal "shipping"
     t.decimal "delivery_fees"
+    t.string "session_id"
+    t.integer "reward_points_used"
+    t.bigint "delivery_address_id"
+    t.integer "coupon_amount"
+    t.string "coupon_code"
     t.index ["billing_detail_id"], name: "index_orders_on_billing_detail_id"
+    t.index ["delivery_address_id"], name: "index_orders_on_delivery_address_id"
     t.index ["user_id"], name: "index_orders_on_user_id"
   end
 
@@ -196,8 +337,33 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "transaction_id"
+    t.string "payment_gateway"
+    t.string "currency"
+    t.string "payment_type"
+    t.text "payment_details"
+    t.string "gateway_status"
+    t.datetime "captured_at"
+    t.decimal "amount_refunded"
     t.index ["order_id"], name: "index_payment_transactions_on_order_id"
     t.index ["user_payment_method_id"], name: "index_payment_transactions_on_user_payment_method_id"
+  end
+
+  create_table "point_histories", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "reward_point_id", null: false
+    t.bigint "tiers_point_id"
+    t.bigint "order_id"
+    t.string "transaction_type"
+    t.integer "points_earned", default: 0
+    t.integer "points_used", default: 0
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_point_histories_on_order_id"
+    t.index ["reward_point_id"], name: "index_point_histories_on_reward_point_id"
+    t.index ["tiers_point_id"], name: "index_point_histories_on_tiers_point_id"
+    t.index ["user_id"], name: "index_point_histories_on_user_id"
   end
 
   create_table "product3_d_models", force: :cascade do |t|
@@ -227,6 +393,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_product_images_on_product_id"
+  end
+
+  create_table "product_sizes", force: :cascade do |t|
+    t.bigint "product_id", null: false
+    t.string "size"
+    t.decimal "price"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_product_sizes_on_product_id"
   end
 
   create_table "products", force: :cascade do |t|
@@ -259,6 +434,15 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.index ["user_id"], name: "index_reviews_on_user_id"
   end
 
+  create_table "reward_points", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "reward_points", default: 0
+    t.integer "total_save", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_reward_points_on_user_id"
+  end
+
   create_table "room_images", force: :cascade do |t|
     t.bigint "virtual_room_id", null: false
     t.string "image_url"
@@ -266,6 +450,29 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["virtual_room_id"], name: "index_room_images_on_virtual_room_id"
+  end
+
+  create_table "sidebar_contents", force: :cascade do |t|
+    t.text "youtube_link"
+    t.text "gallery_image_1"
+    t.text "gallery_image_2"
+    t.text "gallery_image_3"
+    t.text "gallery_image_4"
+    t.text "gallery_image_5"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "tiers_points", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "tier_type"
+    t.boolean "status"
+    t.integer "tier_point", default: 0
+    t.datetime "tier_valid_from"
+    t.datetime "tier_valid_until"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_tiers_points_on_user_id"
   end
 
   create_table "user_payment_methods", force: :cascade do |t|
@@ -276,6 +483,18 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_user_payment_methods_on_user_id"
+  end
+
+  create_table "user_sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "device_name"
+    t.string "ip_address"
+    t.string "token"
+    t.datetime "expires_at"
+    t.datetime "last_active_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_user_sessions_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -292,6 +511,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
     t.datetime "reset_password_sent_at"
     t.string "refresh_token"
     t.string "address"
+    t.string "username"
+    t.string "session_id"
+    t.boolean "guest_user", default: false
+    t.index ["session_id"], name: "index_users_on_session_id", unique: true, where: "(session_id IS NOT NULL)"
   end
 
   create_table "virtual_room_items", force: :cascade do |t|
@@ -329,27 +552,49 @@ ActiveRecord::Schema[7.1].define(version: 2025_02_14_115219) do
   add_foreign_key "cart_items", "products"
   add_foreign_key "carts", "users"
   add_foreign_key "categories", "categories", column: "parent_id"
+  add_foreign_key "chats", "admin_users"
+  add_foreign_key "chats", "users"
   add_foreign_key "comment_reactions", "comments"
   add_foreign_key "comment_reactions", "users"
   add_foreign_key "comments", "comments", column: "parent_comment_id"
   add_foreign_key "comments", "products"
   add_foreign_key "comments", "users"
+  add_foreign_key "coupon_usage_histories", "coupons"
+  add_foreign_key "coupon_usage_histories", "orders"
+  add_foreign_key "coupon_usage_histories", "users"
+  add_foreign_key "coupons", "users"
+  add_foreign_key "delivery_addresses", "users"
   add_foreign_key "description_images", "products"
+  add_foreign_key "free_sample_products", "free_samples_requests"
+  add_foreign_key "free_sample_products", "products"
+  add_foreign_key "free_samples_requests", "delivery_addresses"
+  add_foreign_key "free_samples_requests", "users"
+  add_foreign_key "inquiry_forms", "users"
   add_foreign_key "loyalty_transactions", "users"
+  add_foreign_key "messages", "chats"
   add_foreign_key "order_items", "orders"
   add_foreign_key "order_items", "products"
   add_foreign_key "orders", "billing_details"
+  add_foreign_key "orders", "delivery_addresses"
   add_foreign_key "orders", "users"
   add_foreign_key "payment_transactions", "orders"
   add_foreign_key "payment_transactions", "user_payment_methods"
+  add_foreign_key "point_histories", "orders"
+  add_foreign_key "point_histories", "reward_points"
+  add_foreign_key "point_histories", "tiers_points"
+  add_foreign_key "point_histories", "users"
   add_foreign_key "product3_d_models", "products"
   add_foreign_key "product_categories", "categories"
   add_foreign_key "product_categories", "products"
   add_foreign_key "product_images", "products"
+  add_foreign_key "product_sizes", "products"
   add_foreign_key "reviews", "products"
   add_foreign_key "reviews", "users"
+  add_foreign_key "reward_points", "users"
   add_foreign_key "room_images", "virtual_rooms"
+  add_foreign_key "tiers_points", "users"
   add_foreign_key "user_payment_methods", "users"
+  add_foreign_key "user_sessions", "users"
   add_foreign_key "virtual_room_items", "products"
   add_foreign_key "virtual_room_items", "virtual_rooms"
   add_foreign_key "virtual_rooms", "users"

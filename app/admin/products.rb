@@ -139,7 +139,7 @@ ActiveAdmin.register Product do
     end
     f.inputs "Upload Virtual Image" do
       f.input :virtual_image, as: :file
-      if f.object.virtual_image.attached?
+      if f.object.persisted? && f.object.virtual_image.attached?
         div do
           image_tag f.object.virtual_image, size: "200x200", style: "border-radius: 5px;"
         end
@@ -159,7 +159,7 @@ ActiveAdmin.register Product do
     f.inputs "Product Images" do
       f.input :images, as: :file, input_html: { multiple: true }, hint: "Leave empty to keep existing images."
     
-      if f.object.images.attached?
+      if f.object.persisted? && f.object.images.attached?
         div style: "display: flex; gap: 10px; margin-top: 10px;" do
           f.object.images.each do |image|
             div do

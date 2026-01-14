@@ -7,18 +7,45 @@ class CartsController < ApplicationController
 
 
   def add_item
-    return render json: { error: "Product not found" }, status: :not_found unless Product.find_by(id: params[:product_id])
-    item = if params[:size].present?
-      @cart.cart_items.find_or_initialize_by(product_id: params[:product_id], size: params[:size])
-    else
-      @cart.cart_items.find_or_initialize_by(product_id: params[:product_id])
-    end
-    process_quantity(item, params[:quantity])
+    product = Product.find_by(id: params[:product_id])
+    return render json: { error: "Product not found" }, status: :not_found unless product
+    
+    # Handle size assignment
     if params[:size].present?
+      product_size = product.product_sizes.find_by(size: params[:size])
+      return render json: { error: "Invalid size selected" }, status: :unprocessable_entity unless product_size
+      item = @cart.cart_items.find_or_initialize_by(product_id: params[:product_id], size: params[:size])
       item.size = params[:size]
+      item.unit_price = product_size.price
     else
-      item.size = item.product.product_sizes.first.size
+      # If no size provided, check if product has sizes
+      if product.product_sizes.any?
+        first_size = product.product_sizes.first
+        item = @cart.cart_items.find_or_initialize_by(product_id: params[:product_id], size: first_size.size)
+        item.size = first_size.size
+        item.unit_price = first_size.price
+      else
+        # Product has no sizes, create item without size
+        item = @cart.cart_items.find_or_initialize_by(product_id: params[:product_id])
+        item.unit_price = product.price
+      end
     end
+    
+    # Process quantity
+    quantity = params[:quantity].to_i
+    if quantity && quantity > 0
+      unless validate_stock(item, quantity)
+        return # Stop execution if stock validation fails
+      end
+      item.quantity = quantity
+    else
+      item.quantity ||= 1
+      # Validate stock for default quantity too
+      unless validate_stock(item, item.quantity)
+        return # Stop execution if stock validation fails
+      end
+    end
+    
     if item.save
       render json: { message: "Item added to cart successfully", cart: @cart.reload }, status: :created
     else
@@ -68,7 +95,13 @@ class CartsController < ApplicationController
   private
 
   def set_cart
+    unless current_user
+      return render json: { error: "User not authenticated" }, status: :unauthorized
+    end
     @cart = current_user.cart || current_user.create_cart
+  rescue => e
+    Rails.logger.error "Error setting cart: #{e.message}"
+    render json: { error: "Unable to access cart", details: e.message }, status: :internal_server_error
   end
 
   def validate_stock(item, quantity)
@@ -82,8 +115,10 @@ class CartsController < ApplicationController
   def process_quantity(item, quantity_param)
     quantity = quantity_param.to_i
     if quantity && quantity > 0
-      return unless validate_stock(item, quantity)
+      return false unless validate_stock(item, quantity)
       item.quantity = quantity
+      return true
     end
+    false
   end
 end

@@ -7,11 +7,45 @@ class ProductSerializer < ActiveModel::Serializer
   has_many :product_sizes, serializer: ProductSizeSerializer
 
   def images
-    object.images.map { |image| image.url }
+    return [] unless object.images.attached?
+    
+    # Set url_options for ActiveStorage
+    host_env = ENV["HOST"] || "localhost:3000"
+    # Remove protocol if present
+    host = host_env.gsub(/^https?:\/\//, '')
+    protocol = Rails.env.production? ? "https" : "http"
+    ActiveStorage::Current.url_options = { host: host, protocol: protocol }
+    
+    object.images.map do |image|
+      url_for(image)
+    rescue => e
+      Rails.logger.error "Error generating image URL: #{e.message}"
+      nil
+    end.compact
   end
 
   def virtual_image
-    object.virtual_image.url
+    return nil unless object.virtual_image.attached?
+    
+    # Use ActiveStorage::Current.url_options if already set (by ApplicationController)
+    # Otherwise, set it based on available context
+    unless ActiveStorage::Current.url_options.present?
+      if scope.respond_to?(:request) && scope.request.present?
+        host = scope.request.host_with_port
+        host = host.gsub(/^https?:\/\//, '') # Remove protocol if present
+        protocol = scope.request.protocol.gsub('://', '')
+      else
+        host_env = ENV["HOST"] || "localhost:3000"
+        host = host_env.gsub(/^https?:\/\//, '') # Remove protocol if present
+        protocol = Rails.env.production? ? "https" : "http"
+      end
+      ActiveStorage::Current.url_options = { host: host, protocol: protocol }
+    end
+    
+    url_for(object.virtual_image)
+  rescue => e
+    Rails.logger.error "Error generating virtual_image URL: #{e.message}"
+    nil
   end
 
   def average_rating

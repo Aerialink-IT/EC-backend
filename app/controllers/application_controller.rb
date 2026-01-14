@@ -12,7 +12,11 @@ class ApplicationController < ActionController::Base
   attr_reader :current_user
 
   def set_url_options
-    ActiveStorage::Current.url_options = { host: "https://#{ENV["HOST"]}" }
+    host = ENV["HOST"] || request.host_with_port
+    # Remove protocol if present
+    host = host.gsub(/^https?:\/\//, '')
+    protocol = Rails.env.production? ? "https" : "http"
+    ActiveStorage::Current.url_options = { host: host, protocol: protocol }
   end
 
   def authenticate_request

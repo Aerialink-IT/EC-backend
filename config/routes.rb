@@ -99,4 +99,14 @@ Rails.application.routes.draw do
   end
 
   resources :free_samples_requests, only: [:create]
+  
+  # Content Management API
+  resources :contents, only: [:index, :show] do
+    collection do
+      get 'by_section/:section', to: 'contents#by_section', as: :by_section
+    end
+  end
+  
+  # Sidebar Content API
+  get 'sidebar_contents/sidebar_content_show', to: 'sidebar_contents#sidebar_content_show'
 end

@@ -7,8 +7,21 @@ class CartItem < ApplicationRecord
   after_destroy :update_cart_totals
 
   def set_prices
-    self.unit_price = product.product_sizes.find_by(size: self.size).price unless unit_price
-    self.total_price = unit_price * quantity
+    unless unit_price
+      if self.size.present?
+        product_size = product.product_sizes.find_by(size: self.size)
+        if product_size
+          self.unit_price = product_size.price
+        else
+          # Size specified but not found, use product base price
+          self.unit_price = product.price
+        end
+      else
+        # No size specified, use product base price
+        self.unit_price = product.price
+      end
+    end
+    self.total_price = (unit_price || 0) * (quantity || 0)
   end
 
   private

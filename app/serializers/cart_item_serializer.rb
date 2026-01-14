@@ -4,6 +4,6 @@ class CartItemSerializer < ActiveModel::Serializer
   attribute :product
 
   def product
-    ProductSerializer.new(object.product)
+    ProductSerializer.new(object.product, scope: scope)
   end
 end

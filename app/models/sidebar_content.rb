@@ -1,0 +1,2 @@
+class SidebarContent < ApplicationRecord
+end
